@@ -104,8 +104,7 @@ def handle_client(ip: str, port: int):
 
 if __name__ == "__main__":
     init_ranges()
-    while True:
-        main()
+    main()
 
 """
 id:8200                 security
