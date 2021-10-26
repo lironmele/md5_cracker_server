@@ -103,12 +103,12 @@ def handle_client(ip: str, port: int):
         # Safely send the ranges to the client.
         try:
             client_socket.send(msg.encode())
+            response = client_socket.recv(BUFFER_SIZE)  # id,true/false,md5,password
         except Exception as e:
             print(e)
             client_list.remove(client_socket)
             unchecked_ranges.append(brute_range)
             break
-        response = client_socket.recv(BUFFER_SIZE)  # id,true/false,md5,password
 
         # Stop loop if client disconnected, remove it from the client list, and add its unchecked range to the unchecked ranges list.
         if not response:
