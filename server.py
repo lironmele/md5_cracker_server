@@ -10,6 +10,7 @@ g_id = 0
 g_range_list = []
 client_list = []
 unchecked_ranges = []
+
 def main():
     global g_id
 
@@ -21,17 +22,20 @@ def main():
     try:
         message = cracker.recv(BUFFER_SIZE).decode()
     except:
+        cracker.close()
         return
 
     if message == "Howdy":
         cracker.send(str(g_id).encode())
     else:
+        cracker.close()
         return
     
-    threading.Thread(target=handle_client, args=(cracker_address,g_id,)).start()
+    threading.Thread(target=handle_client, args=(cracker_address[0],g_id + PORT,)).start()
     g_id+=1
+    cracker.close()
 
-def init_ranges() -> list:
+def init_ranges():
     global g_range_list
 
     start = "aaaaaa"
@@ -39,9 +43,12 @@ def init_ranges() -> list:
         for j in range(1,26):
             g_range_list.append([start, chr(ord(start[0]) + i) + chr(ord(start[1]) + j) + start[2:]])
             start = chr(ord(start[0]) + i) + chr(ord(start[1]) + j) + start[2:]
+    g_range_list.append([g_range_list[-1][-1], "zzzzzz"])
 
-def get_range():
     
+def get_range():
+    global g_range_list
+    return g_range_list.pop(0)
 
 def finish(hash: str, password: str):
     pass
@@ -76,6 +83,8 @@ def handle_client(ip: str, port: int):
             return
 
 if __name__ == "__main__":
+    init_ranges()
+    print(g_range_list)
     while True:
         main()
 
