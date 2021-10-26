@@ -41,9 +41,8 @@ def init_ranges():
     start = "aaaaaa"
     for i in range(26):
         for j in range(1,26):
-            g_range_list.append([start, chr(ord(start[0]) + i) + chr(ord(start[1]) + j) + start[2:]])
-            start = chr(ord(start[0]) + i) + chr(ord(start[1]) + j) + start[2:]
-    g_range_list.append([g_range_list[-1][-1], "zzzzzz"])
+            g_range_list.append([chr(ord(start[0]) + i) + chr(ord(start[1]) + j-1) + start[2:], chr(ord(start[0]) + i) + chr(ord(start[1]) + j) + start[2:]])
+        g_range_list.append([g_range_list[-1][-1], chr(ord(start[0])+i)+"zzzzz"])
 
     
 def get_range():
