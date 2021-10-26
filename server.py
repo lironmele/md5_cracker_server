@@ -68,7 +68,7 @@ def finish(passwd_hash: str, password: str):
     :param password: Clear text password found by the cracker.
     :return: 
     """
-    print('--------------------------\n* Password found! *\nPassword: {passwd}\nHash: {hash}\n--------------------------').format(passwd=password, hash=passwd_hash)
+    print('--------------------------\n* Password found! *\nPassword: {passwd}\nHash: {hash}\n--------------------------'.format(passwd=password, hash=passwd_hash))
     print('Relying finish message to crackers...')
     msg = 'finish,{md5}'.format(md5=passwd_hash)
     for client_socket in client_list:
