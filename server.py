@@ -49,8 +49,24 @@ def get_range():
     global g_range_list
     return g_range_list.pop(0)
 
-def finish(hash: str, password: str):
-    pass
+def finish(passwd_hash: str, password: str):
+    """
+    This function lets all of the crackers know that the job was finished and a password was found.
+    :param passwd_hash: Hash of the password found by the cracker
+    :param password: Clear text password found by the cracker.
+    :return: 
+    """
+    print('--------------------------\n* Password found! *\nPassword: {passwd}\nHash: {hash}\n--------------------------').format(passwd=password, hash=passwd_hash)
+    print('Relying finish message to crackers...')
+    msg = 'finish,{md5}'.format(md5=passwd_hash)
+    for client_socket in client_list:
+        # Safely send the ranges to the client.
+        try:
+            client_socket.send(msg.encode())
+        except socket_error as e:
+            print(e)
+            client_list.remove(client_socket)  # Not sure if we need this line.
+    print('Done relying finish message to crackers...')
 
 def handle_client(ip: str, port: int):
     """
@@ -83,7 +99,6 @@ def handle_client(ip: str, port: int):
 
 if __name__ == "__main__":
     init_ranges()
-    print(g_range_list)
     while True:
         main()
 
