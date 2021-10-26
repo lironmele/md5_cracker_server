@@ -88,9 +88,13 @@ def handle_client(ip: str, port: int):
     :param port: port on which the cracker's server is hosted on.
     """
     # Initiate the client connection socket and add it to the client list.
-    client_socket = socket.socket()
-    client_socket.connect((ip, port))
-    client_list.append(client_socket)
+    try:
+        client_socket = socket.socket()
+        client_socket.connect((ip, port))
+        client_list.append(client_socket)
+    except Exception as e:
+        print(e)
+        return
 
     # Communicate with the client until the client disconnects or until the password was found.
     while True:
