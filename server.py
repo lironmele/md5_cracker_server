@@ -6,33 +6,39 @@ IP="0.0.0.0"
 PORT = 13370
 PASSWORD = "99df698e726c1a51c7e3a1b9dc468102"
 BUFFER_SIZE = 2048
-g_id = 0
 g_range_list = []
 client_list = []
 unchecked_ranges = []
 
 def main():
-    global g_id
+    current_id = 0
 
-    s = socket.socket()
-    s.bind((IP,PORT))
-    s.listen(1)
-    cracker, cracker_address = s.accept()
-    
-    try:
-        message = cracker.recv(BUFFER_SIZE).decode()
-    except:
-        cracker.close()
-        return
+# Initiates server socket
+    server_socket = socket.socket()
+    server_socket.bind((IP, PORT))
+    server_socket.listen()
 
-    if message == "Howdy":
-        cracker.send(str(g_id).encode())
-    else:
-        cracker.close()
-        return
-    
-    threading.Thread(target=handle_client, args=(cracker_address[0],g_id + PORT,)).start()
-    g_id+=1
+    while True:
+        (cracker, cracker_address) = server_socket.accept()
+
+        # Safely send the ranges to the client.
+        try:
+            message = cracker.recv(BUFFER_SIZE).decode()
+        except:
+            cracker.close()
+            continue
+
+        if message == "Howdy":
+            try:
+                cracker.send(str(current_id).encode())
+            except:
+                cracker.close()
+        else:
+            cracker.close()
+            continue
+
+    threading.Thread(target=handle_client, args=(cracker_address[0], current_id + PORT,)).start()
+    current_id += 1
     cracker.close()
 
 def init_ranges():
@@ -63,8 +69,7 @@ def finish(passwd_hash: str, password: str):
         # Safely send the ranges to the client.
         try:
             client_socket.send(msg.encode())
-        except socket_error as e:
-            print(e)
+        except:
             client_list.remove(client_socket)  # Not sure if we need this line.
     print('Done relying finish message to crackers...')
 
