@@ -1,7 +1,5 @@
 import socket
-from socket import error as socket_error
 import threading
-from hashlib import md5
 
 IP = "0.0.0.0"
 PORT = 13370
