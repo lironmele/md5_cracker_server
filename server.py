@@ -68,7 +68,7 @@ def finish(passwd_hash: str, password: str):
     :param password: Clear text password found by the cracker.
     :return: 
     """
-    print('--------------------------\n* Password found! *\nPassword: {passwd}\nHash: {hash}\n--------------------------').format(passwd=password, hash=passwd_hash)
+    print('--------------------------\n* Password found! *\nPassword: {passwd}\nHash: {hash}\n--------------------------'.format(passwd=password, hash=passwd_hash))
     print('Relying finish message to crackers...')
     msg = 'finish,{md5}'.format(md5=passwd_hash)
     for client_socket in client_list:
@@ -88,9 +88,13 @@ def handle_client(ip: str, port: int):
     :param port: port on which the cracker's server is hosted on.
     """
     # Initiate the client connection socket and add it to the client list.
-    client_socket = socket.socket()
-    client_socket.connect((ip, port))
-    client_list.append(client_socket)
+    try:
+        client_socket = socket.socket()
+        client_socket.connect((ip, port))
+        client_list.append(client_socket)
+    except Exception as e:
+        print(e)
+        return
 
     # Communicate with the client until the client disconnects or until the password was found.
     while True:
@@ -99,12 +103,12 @@ def handle_client(ip: str, port: int):
         # Safely send the ranges to the client.
         try:
             client_socket.send(msg.encode())
+            response = client_socket.recv(BUFFER_SIZE)  # id,true/false,md5,password
         except Exception as e:
             print(e)
             client_list.remove(client_socket)
             unchecked_ranges.append(brute_range)
             break
-        response = client_socket.recv(BUFFER_SIZE)  # id,true/false,md5,password
 
         # Stop loop if client disconnected, remove it from the client list, and add its unchecked range to the unchecked ranges list.
         if not response:
