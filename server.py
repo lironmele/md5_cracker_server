@@ -1,39 +1,50 @@
 import socket
+from socket import error as socket_error
 import threading
+from hashlib import md5
 
 IP = "0.0.0.0"
 PORT = 13370
 PASSWORD = "99df698e726c1a51c7e3a1b9dc468102"
 BUFFER_SIZE = 2048
-g_id = 0
 g_range_list = []
 client_list = []
 unchecked_ranges = []
 
 
 def main():
-    global g_id
+    current_id = 0
 
-    s = socket.socket()
-    s.bind((IP, PORT))
-    s.listen(1)
-    cracker, cracker_address = s.accept()
+    # Initiates server socket
+    server_socket = socket.socket()
+    server_socket.bind((IP, PORT))
+    server_socket.listen()
 
-    try:
-        message = cracker.recv(BUFFER_SIZE).decode()
-    except:
-        return
+    while True:
+        (cracker, cracker_address) = server_socket.accept()
 
-    if message == "Howdy":
-        cracker.send(str(g_id).encode())
-    else:
-        return
+        # Safely send the ranges to the client.
+        try:
+            message = cracker.recv(BUFFER_SIZE).decode()
+        except:
+            cracker.close()
+            continue
 
-    threading.Thread(target=handle_client, args=(cracker_address, g_id,)).start()
-    g_id += 1
+        if message == "Howdy":
+            try:
+                cracker.send(str(current_id).encode())
+            except socket_error:
+                cracker.close()
+        else:
+            cracker.close()
+            continue
+
+        threading.Thread(target=handle_client, args=(cracker_address[0], current_id + PORT,)).start()
+        current_id += 1
+        cracker.close()
 
 
-def init_ranges() -> list:
+def init_ranges():
     global g_range_list
 
     start = "aaaaaa"
@@ -41,11 +52,12 @@ def init_ranges() -> list:
         for j in range(1, 26):
             g_range_list.append([start, chr(ord(start[0]) + i) + chr(ord(start[1]) + j) + start[2:]])
             start = chr(ord(start[0]) + i) + chr(ord(start[1]) + j) + start[2:]
-    return [0, 0]  # PLACEHOLDER
+    g_range_list.append([g_range_list[-1][-1], "zzzzzz"])
 
 
 def get_range():
-    return [0, 0]  # PLACEHOLDER
+    global g_range_list
+    return g_range_list.pop(0)
 
 
 def finish(passwd_hash: str, password: str):
@@ -55,7 +67,9 @@ def finish(passwd_hash: str, password: str):
     :param password: Clear text password found by the cracker.
     :return: 
     """
-    print('--------------------------\n* Password found! *\nPassword: {passwd}\nHash: {hash}\n--------------------------').format(passwd=password, hash=passwd_hash)
+    print(
+        '--------------------------\n* Password found! *\nPassword: {passwd}\nHash: {hash}\n--------------------------').format(
+        passwd=password, hash=passwd_hash)
     print('Relying finish message to crackers...')
     msg = 'finish,{md5}'.format(md5=passwd_hash)
     for client_socket in client_list:
@@ -88,6 +102,7 @@ def handle_client(ip: str, port: int):
             client_socket.send(msg.encode())
         except socket_error as e:
             print(e)
+            client_socket.close()
             client_list.remove(client_socket)
             unchecked_ranges.append(brute_range)
             break
@@ -95,6 +110,7 @@ def handle_client(ip: str, port: int):
 
         # Stop loop if client disconnected, remove it from the client list, and add its unchecked range to the unchecked ranges list.
         if not response:
+            client_socket.close()
             client_list.remove(client_socket)
             unchecked_ranges.append(brute_range)
             break
@@ -106,23 +122,13 @@ def handle_client(ip: str, port: int):
                 break
 
 
-            # start,end,md5
-            # id,true/false,md5,password
-            # finish,md5
+                # start,end,md5
+                # id,true/false,md5,password
+                # finish,md5
 
 
 if __name__ == "__main__":
-    while True:
-        main()
+    init_ranges()
+    print(g_range_list)
+    main()
 
-"""
-id:8200                 security
-f:1/0                   less work/stop algorithm
-if 1        
-pass:password           check password
-else if has range       if not found in the range  
-delete range            delete the range from the list
-give another range      
-else 
-give range              
-"""
