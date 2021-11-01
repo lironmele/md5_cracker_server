@@ -1,10 +1,20 @@
+import hashlib
 import socket
 import threading
 from hashlib import md5
+import RangeDivider
 
 IP = "0.0.0.0"
 PORT = 13370
-PASSWORD = "99df698e726c1a51c7e3a1b9dc468102"
+#PASSWORD = "99df698e726c1a51c7e3a1b9dc468102"
+#PASSWORD = "01fc680014fa524420a949427f3acc4d"
+# PASSWORD = "3dbe00a167653a1aaee01d93e77e730e"
+PASSWORD = input("What do you want to crack?")
+if not PASSWORD:
+    PASSWORD = 'aaaaaaaa'
+print(PASSWORD)
+PASSWORD = hashlib.md5(PASSWORD.encode()).hexdigest()
+print(PASSWORD)
 BUFFER_SIZE = 2048
 g_range_list = []
 client_list = []
@@ -12,7 +22,7 @@ unchecked_ranges = []
 
 
 def main():
-    current_id = 0
+    current_id = 1
 
     # Initiates server socket
     server_socket = socket.socket()
@@ -20,11 +30,19 @@ def main():
     server_socket.listen()
 
     while True:
+        print("Waiting for connections")
         (cracker, cracker_address) = server_socket.accept()
+        if cracker_address[0] == "10.30.56.206":
+            cracker.close()
+            continue
+
+        print(f"Accepted address {cracker_address}")
 
         # Safely send the ranges to the client.
         try:
             message = cracker.recv(BUFFER_SIZE).decode()
+            print(f"Got {message}")
+	
         except Exception as e:
             print(e)
             cracker.close()
@@ -39,7 +57,8 @@ def main():
         else:
             cracker.close()
             continue
-
+        
+        print(f"Starting conversation with ({cracker_address[0]}, {PORT+current_id})")
         threading.Thread(target=handle_client, args=(cracker_address[0], current_id + PORT,)).start()
         current_id += 1
         cracker.close()
@@ -48,12 +67,26 @@ def main():
 def init_ranges():
     global g_range_list
 
-    start = "aaaaaa"
-    for i in range(26):
-        for j in range(1, 26):
-            g_range_list.append([chr(ord(start[0]) + i) + chr(ord(start[1]) + j - 1) + start[2:],
-                                 chr(ord(start[0]) + i) + chr(ord(start[1]) + j) + start[2:]])
-        g_range_list.append([g_range_list[-1][-1], chr(ord(start[0]) + i) + "zzzzz"])
+    start = 'aaaaaaaa'
+    stop = 'zzzzzzzz'
+    ranges = RangeDivider.Range(start=start, stop=stop, range_count=1000)
+
+    g_range_list = ranges.to_list()
+
+    print(g_range_list[0])
+
+
+# def init_ranges():
+#     global g_range_list
+
+#     start = "aaaaaaaa"
+#     for i in range(26):
+#         for j in range(1, 26):
+#             g_range_list.append([chr(ord(start[0]) + i) + chr(ord(start[1]) + j - 1) + start[2:],
+#                                  chr(ord(start[0]) + i) + chr(ord(start[1]) + j) + start[2:]])
+#         g_range_list.append([g_range_list[-1][-1], chr(ord(start[0]) + i) + "zzzzzzz"])
+
+#     print(g_range_list[0])
 
 
 def get_range():
@@ -91,6 +124,7 @@ def handle_client(ip: str, port: int):
     try:
         client_socket = socket.socket()
         client_socket.connect((ip, port))
+        print(f"Connected to {ip},{port}")
         client_list.append(client_socket)
     except Exception as e:
         print(e)
@@ -110,6 +144,8 @@ def handle_client(ip: str, port: int):
             unchecked_ranges.append(brute_range)
             break
 
+        print(f"Got response {response} from {ip}")
+
         # Stop loop if client disconnected, remove it from the client list, and add its unchecked range to the unchecked ranges list.
         if not response:
             client_list.remove(client_socket)
@@ -117,7 +153,7 @@ def handle_client(ip: str, port: int):
             break
 
         response = response.decode().split(',')
-        if response[1] == 'true':
+        if response[1] == 'True' or response[1] == 'true':
             if md5(response[3].encode()).hexdigest() == PASSWORD:
                 finish(response[2], response[3])
                 break
