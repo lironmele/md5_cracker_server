@@ -3,6 +3,7 @@ import socket
 import threading
 from hashlib import md5
 import RangeDivider
+import CelebrationTime
 
 IP = "0.0.0.0"
 PORT = input("Whats the port?")
@@ -103,6 +104,7 @@ def finish(passwd_hash: str, password: str):
             print(e)
             client_list.remove(client_socket)  # Not sure if we need this line.
     print('Done relying finish message to crackers...')
+    CelebrationTime.celebrate()
 
 
 def handle_client(ip: str, port: int):
