@@ -5,7 +5,11 @@ from hashlib import md5
 import RangeDivider
 
 IP = "0.0.0.0"
-PORT = 13370
+PORT = input("Whats the port?")
+if not PORT:
+    PORT = 13370
+else:
+    PORT = int(PORT)
 #PASSWORD = "99df698e726c1a51c7e3a1b9dc468102"
 #PASSWORD = "01fc680014fa524420a949427f3acc4d"
 # PASSWORD = "3dbe00a167653a1aaee01d93e77e730e"
