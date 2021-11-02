@@ -80,19 +80,6 @@ def init_ranges():
     print(g_range_list[0])
 
 
-# def init_ranges():
-#     global g_range_list
-
-#     start = "aaaaaaaa"
-#     for i in range(26):
-#         for j in range(1, 26):
-#             g_range_list.append([chr(ord(start[0]) + i) + chr(ord(start[1]) + j - 1) + start[2:],
-#                                  chr(ord(start[0]) + i) + chr(ord(start[1]) + j) + start[2:]])
-#         g_range_list.append([g_range_list[-1][-1], chr(ord(start[0]) + i) + "zzzzzzz"])
-
-#     print(g_range_list[0])
-
-
 def get_range():
     global g_range_list
     return g_range_list.pop(0)
